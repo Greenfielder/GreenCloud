@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<VBox alignment="CENTER" prefHeight="400.0" prefWidth="400.0"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.flamexander.netty.example.client.MainController" fx:id="rootNode">
+    <HBox>
+        <TextField HBox.hgrow="ALWAYS" fx:id="tfFileName" promptText="Укажите имя файла на сервере, который хотите скачать" focusTraversable="false"/>
+        <Button text="Скачать" onAction="#pressOnDownloadBtn"  />
+    </HBox>
+
+    <ListView fx:id="filesList" VBox.vgrow="ALWAYS"/>
+    <HBox>
+        <Button text="Send file" onAction="#sendFile"
+                HBox.hgrow="ALWAYS"/>
+        <Button text="Delete file" onAction="#deleteFileClient"
+                HBox.hgrow="ALWAYS"/>
+        <Button text="Refresh" onAction="#refreshLocalFilesList"
+                HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <ListView fx:id="serverFileList" VBox.vgrow="ALWAYS"/>
+    <HBox>
+        <Button text="Send file" onAction="#sendFileToClient"
+                HBox.hgrow="ALWAYS"/>
+        <Button text="Delete file" onAction="#deleteFileServer"
+                HBox.hgrow="ALWAYS"/>
+        <Button text="Refresh" onAction="#refreshServerFilesList"
+                HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+</VBox>
