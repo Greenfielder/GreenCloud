@@ -25,8 +25,6 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
-//    public ListView<String> serverListView;
-
     @FXML
     TextField tfFileName;
 
@@ -49,6 +47,7 @@ public class MainController implements Initializable {
                         Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
                     }
+
                 }
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
@@ -100,7 +99,7 @@ public class MainController implements Initializable {
 
     public void refreshAll() {
         refreshLocalFilesList();
-//        refreshServerFilesList();
+        refreshServerFilesList();
     }
 
     public void refreshLocalFilesList() {
@@ -123,34 +122,26 @@ public class MainController implements Initializable {
         }
     }
 
-//    public void refreshServerFilesList() {
-//        if (Platform.isFxApplicationThread()) {
-//            try {
-//                serverFileList.getItems().clear();
-//                Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            Platform.runLater(() -> {
-//                try {
-//                    serverFileList.getItems().clear();
-//                    Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                serverList.clear();
-//                serverFileList.setItems(serverList);
-//            });
-//        }
-//    }
-
-    private void refreshServerFilesList(FileMessage message) {
-        Platform.runLater(() -> {
-            serverList.clear();
-            serverList.addAll(message.getListFileNames());
-            serverFileList.setItems(serverList);
-        });
+    public void refreshServerFilesList() {
+        if (Platform.isFxApplicationThread()) {
+            try {
+                serverFileList.getItems().clear();
+                Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Platform.runLater(() -> {
+                try {
+                    serverFileList.getItems().clear();
+                    Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                serverList.clear();
+                serverFileList.setItems(serverList);
+            });
+        }
     }
 
     public void deleteFileClient(ActionEvent actionEvent) {
@@ -176,6 +167,6 @@ public class MainController implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        refreshServerFilesList();
+        refreshServerFilesList();
     }
 }
