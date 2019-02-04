@@ -51,10 +51,12 @@ public class MainController implements Initializable {
                     }
                     if (am instanceof FileListRequest) {
                         FileListRequest flo = (FileListRequest) am;
-                        serverFiles = flo.getListFileNames();
-                        updateGUI(() -> {
-                            serverFilesList.addAll(serverFiles);
-                        });
+                        serverFileList.getItems().clear();
+                        serverFileList.getItems().addAll(String.valueOf(flo.getListFileNames()));
+//                        serverFiles = flo.getListFileNames();
+//                        updateGUI(() -> {
+//                            serverFilesList.addAll(serverFiles);
+//                        });
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
