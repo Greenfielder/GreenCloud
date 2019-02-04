@@ -1,6 +1,7 @@
 package com.flamexander.netty.example.client;
 
 import com.flamexander.netty.example.common.AbstractMessage;
+import com.flamexander.netty.example.common.FileListRequest;
 import com.flamexander.netty.example.common.FileMessage;
 import com.flamexander.netty.example.common.FileRequest;
 import javafx.application.Platform;
@@ -21,19 +22,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
+    private List<FileRequest> serverFiles;
+    private ObservableList<FileRequest> serverFilesList = FXCollections.observableArrayList();
+
     @FXML
     TextField tfFileName;
-
     @FXML
     ListView<String> filesList;
     @FXML
     ListView<String> serverFileList;
-
-    ObservableList<String> serverList = FXCollections.observableList(new ArrayList<>());
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -47,7 +49,13 @@ public class MainController implements Initializable {
                         Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
                     }
-
+                    if (am instanceof FileListRequest) {
+                        FileListRequest flo = (FileListRequest) am;
+                        serverFiles = flo.getListFileNames();
+                        updateGUI(() -> {
+                            serverFilesList.addAll(serverFiles);
+                        });
+                    }
                 }
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
@@ -62,7 +70,7 @@ public class MainController implements Initializable {
         t.start();
         filesList.setItems(FXCollections.observableArrayList());
         serverFileList.setItems(FXCollections.observableArrayList());
-        refreshAll();
+        refreshLocalFilesList();
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
@@ -84,7 +92,7 @@ public class MainController implements Initializable {
         Path file = Paths.get("client_storage/" + selectedItem);
         Network.sendMsg(new FileMessage(file));
         System.out.println(file);
-        refreshAll();
+        refreshLocalFilesList();
     }
 
     public void sendFileToClient(ActionEvent actionEvent) throws InterruptedException, IOException {
@@ -93,14 +101,9 @@ public class MainController implements Initializable {
         Path file = Paths.get("server_storage/" + selectedItem);
         Network.sendMsg(new FileRequest(selectedItem));
         System.out.println(file);
-        refreshAll();
-    }
-
-
-    public void refreshAll() {
-        refreshLocalFilesList();
         refreshServerFilesList();
     }
+
 
     public void refreshLocalFilesList() {
         if (Platform.isFxApplicationThread()) {
@@ -123,24 +126,10 @@ public class MainController implements Initializable {
     }
 
     public void refreshServerFilesList() {
-        if (Platform.isFxApplicationThread()) {
-            try {
-                serverFileList.getItems().clear();
-                Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Platform.runLater(() -> {
-                try {
-                    serverFileList.getItems().clear();
-                    Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFileList.getItems().add(o));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                serverList.clear();
-                serverFileList.setItems(serverList);
-            });
+        try {
+            Network.sendMsg(new FileListRequest());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -169,4 +158,13 @@ public class MainController implements Initializable {
         }
         refreshServerFilesList();
     }
+
+    public static void updateGUI(Runnable r) {
+        if (Platform.isFxApplicationThread()) {
+            r.run();
+        } else {
+            Platform.runLater(r);
+        }
+    }
+
 }

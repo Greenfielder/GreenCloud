@@ -1,6 +1,7 @@
 package com.flamexander.netty.example.common;
 
 public class FileRequest extends AbstractMessage {
+
     private String filename;
 
     public String getFilename() {

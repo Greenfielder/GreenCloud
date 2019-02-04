@@ -10,14 +10,14 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
-
-    static ObservableList<String> serverList = FXCollections.observableList(new ArrayList<>());
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -45,12 +45,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
             }
             if (msg instanceof FileListRequest) {
-                FileListRequest flr = (FileListRequest) msg;
-                Platform.runLater(() -> {
-                    serverList.clear();
-                    serverList.addAll(flr.getListFileNames());
-                    ctx.writeAndFlush(flr);
-                });
+
+                List<FileRequest> serverFiles = new ArrayList<>();
+                Files.list(Paths.get("server_storage/" + "/"))
+                        .forEach(p -> serverFiles.add(new FileRequest(p.getFileName().toString())));
+                FileListRequest flr = new FileListRequest(serverFiles);
+                ctx.writeAndFlush(flr);
 
             } else {
                 System.out.printf("Server received wrong object!");
