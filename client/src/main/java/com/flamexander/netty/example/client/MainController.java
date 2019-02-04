@@ -53,10 +53,6 @@ public class MainController implements Initializable {
                         FileListRequest flo = (FileListRequest) am;
                         serverFileList.getItems().clear();
                         serverFileList.getItems().addAll(String.valueOf(flo.getListFileNames()));
-//                        serverFiles = flo.getListFileNames();
-//                        updateGUI(() -> {
-//                            serverFilesList.addAll(serverFiles);
-//                        });
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -73,6 +69,7 @@ public class MainController implements Initializable {
         filesList.setItems(FXCollections.observableArrayList());
         serverFileList.setItems(FXCollections.observableArrayList());
         refreshLocalFilesList();
+        refreshServerFilesList();
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
@@ -160,13 +157,4 @@ public class MainController implements Initializable {
         }
         refreshServerFilesList();
     }
-
-    public static void updateGUI(Runnable r) {
-        if (Platform.isFxApplicationThread()) {
-            r.run();
-        } else {
-            Platform.runLater(r);
-        }
-    }
-
 }
