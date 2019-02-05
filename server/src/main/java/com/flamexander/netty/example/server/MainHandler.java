@@ -45,13 +45,11 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
             }
             if (msg instanceof FileListRequest) {
-
-                List<FileRequest> serverFiles = new ArrayList<>();
+                List<String> serverFiles = new ArrayList<>();
+                FileListRequest answer = new FileListRequest(serverFiles);
                 Files.list(Paths.get("server_storage/" + "/"))
-                        .forEach(p -> serverFiles.add(new FileRequest(p.getFileName().toString())));
-                FileListRequest flr = new FileListRequest(serverFiles);
-                ctx.writeAndFlush(flr);
-
+                        .forEach(p -> answer.getListFileNames().add(p.getFileName().toString()));
+                ctx.writeAndFlush(answer);
             } else {
                 System.out.printf("Server received wrong object!");
                 return;

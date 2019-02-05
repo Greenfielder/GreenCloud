@@ -52,7 +52,7 @@ public class MainController implements Initializable {
                     if (am instanceof FileListRequest) {
                         FileListRequest flo = (FileListRequest) am;
                         serverFileList.getItems().clear();
-                        serverFileList.getItems().addAll(String.valueOf(flo.getListFileNames()));
+                        serverFileList.getItems().addAll((flo.getListFileNames()));
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -92,15 +92,15 @@ public class MainController implements Initializable {
         Network.sendMsg(new FileMessage(file));
         System.out.println(file);
         refreshLocalFilesList();
+        refreshServerFilesList();
     }
 
     public void sendFileToClient(ActionEvent actionEvent) throws InterruptedException, IOException {
         String selectedItem = getSelected(serverFileList);
         if (selectedItem == null) return;
-        Path file = Paths.get("server_storage/" + selectedItem);
         Network.sendMsg(new FileRequest(selectedItem));
-        System.out.println(file);
         refreshServerFilesList();
+        refreshLocalFilesList();
     }
 
 
@@ -125,6 +125,9 @@ public class MainController implements Initializable {
     }
 
     public void refreshServerFilesList() {
+        updateGUI(() -> {
+            serverFileList.getItems().clear();
+        });
         try {
             Network.sendMsg(new FileListRequest());
         } catch (IOException e) {
@@ -151,10 +154,17 @@ public class MainController implements Initializable {
         if (selectedItem == null) return;
         try {
             Files.delete(Paths.get("server_storage/" + selectedItem + "\\"));
-            System.out.println("deleting " + "server_storage/" + selectedItem + "\\");
         } catch (IOException e) {
             e.printStackTrace();
         }
         refreshServerFilesList();
+    }
+
+    public static void updateGUI(Runnable r) {
+        if (Platform.isFxApplicationThread()) {
+            r.run();
+        } else {
+            Platform.runLater(r);
+        }
     }
 }

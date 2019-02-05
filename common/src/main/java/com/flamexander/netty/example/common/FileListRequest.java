@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileListRequest extends AbstractMessage {
-    private List<FileRequest> listFiles;
+    private List<String> listFiles;
 
-    public List<FileRequest> getListFileNames() {
+    public List<String> getListFileNames() {
         return listFiles;
     }
 
-    public FileListRequest(List<FileRequest> listFiles) {
+    public FileListRequest(List<String> listFiles) {
         this.listFiles = listFiles;
     }
 
