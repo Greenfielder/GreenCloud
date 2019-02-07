@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class Network {
-    private byte[] arr;
     private static Socket socket;
     private static ObjectEncoderOutputStream out;
     private static ObjectDecoderInputStream in;

@@ -13,10 +13,10 @@ public class MainClient extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/main.fxml"));
         Parent root = fxmlLoader.load();
         primaryStage.setTitle("GreenCloud Client");
-//        Scene scene = new Scene(root);
-        primaryStage.setScene(new Scene(root, 600, 550));
+        Scene scene = new Scene(root, 600, 550);
+        scene.getStylesheets().add(0, "/caspian/caspian.css");
+        primaryStage.setScene(scene);
 
-//        primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.getIcons().add(new Image("/icon.png"));
         primaryStage.show();
     }

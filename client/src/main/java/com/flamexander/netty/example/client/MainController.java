@@ -1,15 +1,11 @@
 package com.flamexander.netty.example.client;
 
-import com.flamexander.netty.example.common.AbstractMessage;
-import com.flamexander.netty.example.common.FileListRequest;
-import com.flamexander.netty.example.common.FileMessage;
-import com.flamexander.netty.example.common.FileRequest;
+import com.flamexander.netty.example.common.*;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
@@ -21,14 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
-
-    private List<FileRequest> serverFiles;
-    private ObservableList<FileRequest> serverFilesList = FXCollections.observableArrayList();
 
     @FXML
     TextField tfFileName;
@@ -36,6 +27,9 @@ public class MainController implements Initializable {
     ListView<String> filesList;
     @FXML
     ListView<String> serverFileList;
+
+    @FXML
+    Label status;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -54,6 +48,13 @@ public class MainController implements Initializable {
                         serverFileList.getItems().clear();
                         serverFileList.getItems().addAll((flo.getListFileNames()));
                     }
+                    if (am instanceof FileListUpdater){
+                        FileListUpdater fileListUpdater = (FileListUpdater) am;
+                        Platform.runLater(() -> {
+                            serverFileList.getItems().clear();
+                            fileListUpdater.getList().forEach(o -> serverFileList.getItems().add(o));
+                        });
+                    }
                 }
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
@@ -64,10 +65,9 @@ public class MainController implements Initializable {
 
         filesList.setEffect(new DropShadow(10, Color.BLACK));
         serverFileList.setEffect(new DropShadow(10, Color.BLACK));
+        status.setText("GreenCloud version: 0.8");
         t.setDaemon(true);
         t.start();
-        filesList.setItems(FXCollections.observableArrayList());
-        serverFileList.setItems(FXCollections.observableArrayList());
         refreshLocalFilesList();
         refreshServerFilesList();
     }
@@ -90,19 +90,16 @@ public class MainController implements Initializable {
         if (selectedItem == null) return;
         Path file = Paths.get("client_storage/" + selectedItem);
         Network.sendMsg(new FileMessage(file));
-        System.out.println(file);
-        refreshLocalFilesList();
-        refreshServerFilesList();
+        status.setText(String.valueOf(selectedItem) + " cкопирован на сервер");
     }
 
     public void sendFileToClient(ActionEvent actionEvent) throws InterruptedException, IOException {
         String selectedItem = getSelected(serverFileList);
         if (selectedItem == null) return;
         Network.sendMsg(new FileRequest(selectedItem));
-        refreshServerFilesList();
+        status.setText(String.valueOf(selectedItem) + " cкопирован на клиент");
         refreshLocalFilesList();
     }
-
 
     public void refreshLocalFilesList() {
         if (Platform.isFxApplicationThread()) {
@@ -142,7 +139,8 @@ public class MainController implements Initializable {
         }
         try {
             Files.delete(Paths.get("client_storage/" + selectedItem + "\\"));
-            System.out.println("deleting " + "client_storage/" + selectedItem + "\\");
+//            System.out.println("deleting " + "client_storage/" + selectedItem + "\\");
+            status.setText(String.valueOf(selectedItem) + " удален с клиента");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -152,12 +150,8 @@ public class MainController implements Initializable {
     public void deleteFileServer(ActionEvent actionEvent) {
         String selectedItem = getSelected(serverFileList);
         if (selectedItem == null) return;
-        try {
-            Files.delete(Paths.get("server_storage/" + selectedItem + "\\"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        refreshServerFilesList();
+        Network.sendMsg(new FileDelete(selectedItem));
+        status.setText(String.valueOf(selectedItem) + " удален с сервера");
     }
 
     public static void updateGUI(Runnable r) {

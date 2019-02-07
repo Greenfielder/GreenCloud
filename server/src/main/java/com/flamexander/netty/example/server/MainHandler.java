@@ -1,16 +1,11 @@
 package com.flamexander.netty.example.server;
 
-import com.flamexander.netty.example.common.FileListRequest;
-import com.flamexander.netty.example.common.FileMessage;
-import com.flamexander.netty.example.common.FileRequest;
+import com.flamexander.netty.example.common.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -42,6 +37,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("Client send: " + ((FileMessage) msg).getFilename());
                 FileMessage fm = (FileMessage) msg;
                 Files.write(Paths.get("server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                updater(ctx);
 
             }
             if (msg instanceof FileListRequest) {
@@ -50,13 +46,38 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 Files.list(Paths.get("server_storage/" + "/"))
                         .forEach(p -> answer.getListFileNames().add(p.getFileName().toString()));
                 ctx.writeAndFlush(answer);
-            } else {
+            }
+            if (msg instanceof FileDelete) {
+                FileDelete fileDelete = (FileDelete) msg;
+                Files.delete(Paths.get("server_storage/" + fileDelete.getFilename()));
+                System.out.println("Фаил " + fileDelete.getFilename() + " удален");
+                updater(ctx);
+            }
+            if (msg instanceof FileListUpdater) {
+                updater(ctx);
+            }
+            else {
                 System.out.printf("Server received wrong object!");
                 return;
             }
         } finally {
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    private void updater(ChannelHandlerContext ctx) {
+        FileListUpdater fileListUpdater = new FileListUpdater(getServerList());
+        ctx.writeAndFlush(fileListUpdater);
+    }
+
+    public List<String> getServerList(){
+        List<String> fileList = new ArrayList<>();
+        try {
+            Files.list(Paths.get("server_storage/")).map(p -> p.getFileName().toString()).forEach(o -> fileList.add(o));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileList;
     }
 
     @Override
